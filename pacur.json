@@ -1,0 +1,11 @@
+{
+  "name": "zextras-pending-setups",
+  "description": "Keep track of needed setups for zextras products",
+  "build_dir": "/tmp/",
+  "output": "artifacts",
+  "projects": [
+    {
+      "name": "."
+    }
+  ]
+}
