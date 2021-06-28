@@ -9,8 +9,9 @@ execute_script() {
   # limit visibility of secret token as much as possible
   export SETUP_CONSUL_TOKEN
   bash "${SCRIPT}"
-  export -n SETUP_CONSUL_TOKEN
   EXIT_CODE="$?"
+  export -n SETUP_CONSUL_TOKEN
+
   if [[ "${EXIT_CODE}" == "0" ]]; then
     echo "setup successful, moving ${SCRIPT} in ${PERFORMED_SETUPS_DIR}"
     mv "${SCRIPT}" "${PERFORMED_SETUPS_DIR}"
@@ -24,13 +25,6 @@ if [[ "$(whoami)" != "root" ]]; then
   echo "run as root";
   exit 1;
 fi;
-
-SETUP_CONSUL_TOKEN=$(service-discover bootstrap-token --setup)
-EXIT_CODE="$?"
-if [[ "${EXIT_CODE}" != "0" ]]; then
-  echo "cannot access to bootstrap token"
-  exit 1;
-fi
 
 if [[ ! -d "${PENDING_SETUPS_DIR}" ]] || [[ ! -r "${PENDING_SETUPS_DIR}" ]]; then
   echo "cannot list directory ${PENDING_SETUPS_DIR}"
@@ -48,6 +42,17 @@ while : ; do
   echo "You have ${LEN} pending setups"
   if [[ "${LEN}" == "0" ]]; then
     exit 0;
+  fi
+
+  if [[ "${SETUP_CONSUL_TOKEN}" == "" ]]; then
+    echo -n "insert the cluster credential password: "
+    SETUP_CONSUL_TOKEN=$(service-discover bootstrap-token --setup)
+    EXIT_CODE="$?"
+    if [[ "${EXIT_CODE}" != "0" ]]; then
+      echo "cannot access to bootstrap token"
+      exit 1;
+    fi
+    echo ""
   fi
 
   INDEX=0
