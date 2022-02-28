@@ -4,7 +4,7 @@ targets=(
 )
 pkgname="pending-setups"
 pkgver="0.1.1"
-pkgrel="4"
+pkgrel="5"
 pkgdesc="Keep track of needed setups for zextras products"
 pkgdesclong=(
   "Keep track of needed setups for zextras products"
@@ -17,6 +17,7 @@ priority="optional"
 url="https://www.zextras.com/"
 depends=(
   "bash"
+  "jq"
 )
 
 build() {
