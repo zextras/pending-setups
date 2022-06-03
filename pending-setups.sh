@@ -70,28 +70,26 @@ interactive_menu() {
       exit 0
     fi
 
-    if [[ -z "${input}" ]]; then
-      echo "You have ${LEN} pending setups"
+    echo "You have ${LEN} pending setups"
 
-      INDEX=0
-      while [[ ${INDEX} < ${LEN} ]]; do
-        SETUP="${SETUPS[${INDEX}]}"
-        NAME=$(basename "${SETUP}")
-        echo "${INDEX}) ${NAME}"
-        ((INDEX++))
-      done
-      echo "a) execute all"
-      echo "q) quit"
+    INDEX=0
+    while (( ${INDEX} < ${LEN} )); do
+      SETUP="${SETUPS[${INDEX}]}"
+      NAME=$(basename "${SETUP}")
+      echo "${INDEX}) ${NAME}"
+      ((INDEX++))
+    done
+    echo "a) execute all"
+    echo "q) quit"
 
-      echo -n "> "
-      read -r input
-    fi
+    echo -n "> "
+    read -r input
 
     case "${input}" in
       "a" | "all")
         echo "executing all setup scripts"
         INDEX=0
-        while [[ ${INDEX} < ${LEN} ]]; do
+        while (( ${INDEX} < ${LEN} )); do
           execute_script "${SETUPS[${INDEX}]}"
           ((INDEX++))
         done
@@ -100,7 +98,7 @@ interactive_menu() {
         exit 0
         ;;
       [0-9]*)
-        if [[ "${input}" < ${LEN} ]]; then
+        if (( "${input}" < ${LEN} )); then
           execute_script "${SETUPS[${INPUT}]}"
         else
           echo "invalid selection"
