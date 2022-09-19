@@ -4,6 +4,10 @@ PENDING_SETUPS_DIR="/etc/zextras/pending-setups.d/"
 PERFORMED_SETUPS_DIR="/etc/zextras/pending-setups.d/done/"
 SETUP_CONSUL_TOKEN="${SETUP_CONSUL_TOKEN:-}"
 
+repeated_char() {
+  printf "%$1s" | tr " " "$2"
+}
+
 check_root() {
   if [[ "$(whoami)" != "root" ]]; then
     echo "Please run as root"
@@ -33,7 +37,9 @@ check_folder() {
 
 execute_script() {
   SCRIPT="${1}"
-  echo "executing ${SCRIPT}"
+  repeated_char 80 "-"
+  echo
+  echo "Executing ${SCRIPT}"
   # limit visibility of secret token as much as possible
   export SETUP_CONSUL_TOKEN
   bash "${SCRIPT}"
@@ -41,15 +47,21 @@ execute_script() {
   export -n SETUP_CONSUL_TOKEN
 
   if [[ "${EXIT_CODE}" == "0" ]]; then
-    echo "setup successful, moving ${SCRIPT} in ${PERFORMED_SETUPS_DIR}"
+    local script_basename
+    script_basename=$(basename "${SCRIPT}")
+    echo "Setup successful, moving $script_basename to ${PERFORMED_SETUPS_DIR}"
     mv "${SCRIPT}" "${PERFORMED_SETUPS_DIR}"
+    repeated_char 80 "-"
   else
-    echo "setup script failed, keeping it"
+    echo "Setup script failed, keeping it"
+    repeated_char 80 "-"
     exit 1
   fi
 }
 
 interactive_menu() {
+  local invalid_selection
+  invalid_selection=false
   check_root
   check_token
   check_folder
@@ -67,50 +79,69 @@ interactive_menu() {
     LEN=${#SETUPS[@]}
 
     if [[ "${LEN}" == "0" ]]; then
+      echo "There are no pending-setups to run. Exiting!"
       exit 0
     fi
 
-    echo "You have ${LEN} pending setups"
+    if [[ -z "${input}" ]]; then
+      echo
+      echo "You have $LEN pending setups to run"
+      for ((i = 0; i < LEN; i++)); do
+        SETUP="${SETUPS[${i}]}"
+        NAME=$(basename "${SETUP}")
+        echo "${i}) ${NAME}"
+      done
+      echo
+      echo "a) execute all"
+      echo "q) quit"
+      echo
+      echo "Please input your selection:"
+      echo -n "> "
+      read -r input
+    fi
 
-    INDEX=0
-    while (( ${INDEX} < ${LEN} )); do
-      SETUP="${SETUPS[${INDEX}]}"
-      NAME=$(basename "${SETUP}")
-      echo "${INDEX}) ${NAME}"
-      ((INDEX++))
-    done
-    echo "a) execute all"
-    echo "q) quit"
-
-    echo -n "> "
-    read -r input
+    shopt -s extglob
 
     case "${input}" in
-      "a" | "all")
-        echo "executing all setup scripts"
-        INDEX=0
-        while (( ${INDEX} < ${LEN} )); do
-          execute_script "${SETUPS[${INDEX}]}"
-          ((INDEX++))
-        done
-        ;;
-      "q")
-        exit 0
-        ;;
-      [0-9]*)
-        if (( "${input}" < ${LEN} )); then
-          execute_script "${SETUPS[${INPUT}]}"
-        else
-          echo "invalid selection"
-        fi
-        ;;
-      *)
-        echo "invalid selection"
-        ;;
+    "a" | "all")
+      echo
+      echo "Executing all setup scripts..."
+      echo
+      for ((i = 0; i < LEN; i++)); do
+        execute_script "${SETUPS[${i}]}"
+        echo
+      done
+      ;;
+    "q")
+      exit 0
+      ;;
+    [0-9]*)
+      if [[ ${input} -lt ${LEN} ]]; then
+        echo
+        execute_script "${SETUPS[${input}]}"
+        echo
+        break
+      else
+        echo
+        echo "Invalid selection, please try again..."
+        invalid_selection=true
+        echo
+        break
+      fi
+      ;;
+    *)
+      echo
+      echo "Invalid selection, please try again..."
+      echo
+      break
+      ;;
     esac
-
     echo
   done
+
+  if [ $invalid_selection = true ] || [ "$LEN" -gt 0 ]; then
+    interactive_menu
+  fi
 }
 
 usage() {
@@ -125,9 +156,9 @@ usage() {
 
 process_args() {
   case "${1}" in
-    --help | -h) usage ;;
-    --execute-all | -a) interactive_menu all ;;
-    *) interactive_menu ;;
+  --help | -h) usage ;;
+  --execute-all | -a) interactive_menu all ;;
+  *) interactive_menu ;;
   esac
 }
 
