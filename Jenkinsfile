@@ -21,10 +21,10 @@ pipeline {
         }
         stage('Build deb/rpm') {
             parallel {
-                stage('Ubuntu 16.04') {
+                stage('Ubuntu 20.04') {
                     agent {
                         node {
-                            label 'pacur-agent-ubuntu-16.04-v1'
+                            label 'pacur-agent-ubuntu-20.04-v1'
                         }
                     }
                     steps {
@@ -40,10 +40,10 @@ pipeline {
                     }
                 }
 
-                stage('Centos 7') {
+                stage('Rocky 8') {
                     agent {
                         node {
-                            label 'pacur-agent-centos-7-v1'
+                            label 'pacur-agent-rocky-8-v1'
                         }
                     }
                     steps {
@@ -84,12 +84,7 @@ pipeline {
                             {
                                 "pattern": "artifacts/pending-setups*.deb",
                                 "target": "ubuntu-playground/pool/",
-                                "props": "deb.distribution=xenial;deb.distribution=bionic;deb.distribution=focal;deb.component=main;deb.architecture=amd64"
-                            },
-                            {
-                                "pattern": "artifacts/(pending-setups)-(*).rpm",
-                                "target": "centos7-playground/zextras/{1}/{1}-{2}.rpm",
-                                "props": "rpm.metadata.arch=x86_64;rpm.metadata.vendor=zextras"
+                                "props": "deb.distribution=focal;deb.component=main;deb.architecture=amd64"
                             },
                             {
                                 "pattern": "artifacts/(pending-setups)-(*).rpm",
@@ -123,7 +118,7 @@ pipeline {
                             {
                                 "pattern": "artifacts/pending-setups*.deb",
                                 "target": "ubuntu-rc/pool/",
-                                "props": "deb.distribution=xenial;deb.distribution=bionic;deb.distribution=focal;deb.component=main;deb.architecture=amd64"
+                                "props": "deb.distribution=focal;deb.component=main;deb.architecture=amd64"
                             }
                         ]
                     }"""
@@ -140,33 +135,6 @@ pipeline {
                             'failFast'           : true
                     ]
                     Artifactory.addInteractivePromotion server: server, promotionConfig: config, displayName: "Ubuntu Promotion to Release"
-                    server.publishBuildInfo buildInfo
-
-                    //centos7
-                    buildInfo = Artifactory.newBuildInfo()
-                    buildInfo.name += "-centos7"
-                    uploadSpec= """{
-                        "files": [
-                            {
-                                "pattern": "artifacts/(pending-setups)-(*).rpm",
-                                "target": "centos7-rc/zextras/{1}/{1}-{2}.rpm",
-                                "props": "rpm.metadata.arch=x86_64;rpm.metadata.vendor=zextras"
-                            }
-                        ]
-                    }"""
-                    server.upload spec: uploadSpec, buildInfo: buildInfo, failNoOp: false
-                    config = [
-                            'buildName'          : buildInfo.name,
-                            'buildNumber'        : buildInfo.number,
-                            'sourceRepo'         : 'centos7-rc',
-                            'targetRepo'         : 'centos7-release',
-                            'comment'            : 'Do not change anything! Just press the button',
-                            'status'             : 'Released',
-                            'includeDependencies': false,
-                            'copy'               : true,
-                            'failFast'           : true
-                    ]
-                    Artifactory.addInteractivePromotion server: server, promotionConfig: config, displayName: "Centos7 Promotion to Release"
                     server.publishBuildInfo buildInfo
 
                     //centos8
