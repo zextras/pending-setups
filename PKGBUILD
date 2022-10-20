@@ -26,4 +26,5 @@ package() {
   install -dm700 "${pkgdir}/etc/zextras/pending-setups.d/done"
   install -Dm555 ../pending-setups.sh \
     "${pkgdir}/usr/bin/pending-setups"
+  install -dm700 "${pkgdir}/var/log/pending-setups/"
 }
