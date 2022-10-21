@@ -3,6 +3,9 @@
 PENDING_SETUPS_DIR="/etc/zextras/pending-setups.d/"
 PERFORMED_SETUPS_DIR="/etc/zextras/pending-setups.d/done/"
 SETUP_CONSUL_TOKEN="${SETUP_CONSUL_TOKEN:-}"
+LOG_PATH="/var/log/pending-setups"
+NUMBER_OF_LOGS_TO_KEEP=100
+CURRENT_LOG_DATE="$(date --iso-8601=ns)"
 
 repeated_char() {
   printf "%$1s" | tr " " "$2"
@@ -154,6 +157,19 @@ usage() {
   echo "  --help or -h         show this help message"
 }
 
+check_and_rotate() {
+  local number_of_logs
+  number_of_logs="$(find "${LOG_PATH}" -type f -iname "*.log" 2> /dev/null | wc -l)"
+
+  if [[ ${number_of_logs} -gt ${NUMBER_OF_LOGS_TO_KEEP} ]]
+  then
+    local number_of_files_to_delete
+
+    number_of_files_to_delete=$((number_of_logs - NUMBER_OF_LOGS_TO_KEEP))
+    find "${LOG_PATH}" -type f -iname "*.log" 2> /dev/null | sort | head -n"${number_of_files_to_delete}" | xargs rm
+  fi
+}
+
 process_args() {
   case "${1}" in
   --help | -h) usage ;;
@@ -162,4 +178,4 @@ process_args() {
   esac
 }
 
-process_args "$@"
+(check_and_rotate && process_args "$@") 2>&1 | tee -a "${LOG_PATH}/${CURRENT_LOG_DATE}.log"

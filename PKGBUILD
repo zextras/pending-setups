@@ -3,7 +3,7 @@ targets=(
   "ubuntu"
 )
 pkgname="pending-setups"
-pkgver="0.2.1"
+pkgver="0.2.2"
 pkgrel="1"
 pkgdesc="Keep track of needed setups for Zextras products"
 pkgdesclong=(
@@ -26,4 +26,5 @@ package() {
   install -dm700 "${pkgdir}/etc/zextras/pending-setups.d/done"
   install -Dm555 ../pending-setups.sh \
     "${pkgdir}/usr/bin/pending-setups"
+  install -dm700 "${pkgdir}/var/log/pending-setups/"
 }
