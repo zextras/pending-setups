@@ -3,7 +3,7 @@ targets=(
   "ubuntu"
 )
 pkgname="pending-setups"
-pkgver="0.2.1"
+pkgver="0.2.2"
 pkgrel="1"
 pkgdesc="Keep track of needed setups for Zextras products"
 pkgdesclong=(
