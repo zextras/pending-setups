@@ -30,7 +30,14 @@ pipeline {
                     steps {
                         unstash 'project'
                         sh 'sudo cp -r * /tmp/'
-                        sh 'sudo yap build ubuntu .'
+                        script {
+                            if (BRANCH_NAME == 'devel') {
+                                def timestamp = new Date().format('yyyyMMddHHmmss')
+                                sh "sudo yap build ubuntu . -r ${timestamp} -s"
+                            } else {
+                                sh 'sudo yap build ubuntu . -s'
+                            }
+                        }
                         stash includes: 'artifacts/', name: 'artifacts-deb'
                     }
                     post {
@@ -49,7 +56,14 @@ pipeline {
                     steps {
                         unstash 'project'
                         sh 'sudo cp -r * /tmp/'
-                        sh 'sudo yap build rocky .'
+                        script {
+                            if (BRANCH_NAME == 'devel') {
+                                def timestamp = new Date().format('yyyyMMddHHmmss')
+                                sh "sudo yap build rocky . -r ${timestamp} -s"
+                            } else {
+                                sh 'sudo yap build rocky . -s'
+                            }
+                        }
                         stash includes: 'artifacts/x86_64/*.rpm', name: 'artifacts-rpm'
                     }
                     post {
