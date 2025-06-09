@@ -77,7 +77,7 @@ interactive_menu() {
 
     while IFS= read -r -d '' LINE; do
       SETUPS+=("${LINE}")
-    done < <(find "${PENDING_SETUPS_DIR}" -maxdepth 1 -type f -name "*.sh" -print0)
+    done < <(find "${PENDING_SETUPS_DIR}" -maxdepth 1 -type f -name "*.sh" -print0 | sort -zV)
 
     LEN=${#SETUPS[@]}
 
