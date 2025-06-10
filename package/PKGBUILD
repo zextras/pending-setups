@@ -1,5 +1,5 @@
 pkgname="pending-setups"
-pkgver="0.2.4"
+pkgver="0.2.5"
 pkgrel="1"
 pkgdesc="Keep track of needed setups for Zextras products"
 maintainer="Zextras <packages@zextras.com>"
