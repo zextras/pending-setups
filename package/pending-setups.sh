@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# SPDX-FileCopyrightText: 2023-2025 Zextras <https://www.zextras.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
 PENDING_SETUPS_DIR="/etc/zextras/pending-setups.d/"
 PERFORMED_SETUPS_DIR="/etc/zextras/pending-setups.d/done/"
 SETUP_CONSUL_TOKEN="${SETUP_CONSUL_TOKEN:-}"
