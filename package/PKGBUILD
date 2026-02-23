@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 pkgname="pending-setups"
-pkgver="0.2.5"
+pkgver="0.2.6"
 pkgrel="1"
 pkgdesc="Keep track of needed setups for Zextras products"
 maintainer="Zextras <packages@zextras.com>"
