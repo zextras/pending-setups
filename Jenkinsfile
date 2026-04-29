@@ -11,6 +11,8 @@ library(
     ])
 )
 
+properties(defaultPipelineProperties())
+
 pipeline {
     agent {
         node {
