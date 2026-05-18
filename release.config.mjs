@@ -8,7 +8,7 @@
  * @type {import('semantic-release').GlobalConfig}
  */
 export default {
-  branches: ['main'],
+  branches: ['devel'],
   tagFormat: "${version}",
   plugins: [
     [
@@ -69,13 +69,13 @@ export default {
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "sed -i 's|<revision>.*</revision>|<revision>${nextRelease.version}</revision>|' pom.xml && sed -i 's/^pkgver=.*/pkgver=\"${nextRelease.version}\"/' packages/**/PKGBUILD && sed -i 's|^otel.service.version=.*|otel.service.version=${nextRelease.version}|' packages/**/otel.properties"
+        "prepareCmd": "sed -i 's/^pkgver=.*/pkgver=\"${nextRelease.version}\"/' package/PKGBUILD"
       }
     ],
     [
       '@semantic-release/git',
       {
-        assets: ['pom.xml', 'packages/**/PKGBUILD', 'packages/**/otel.properties'],
+        assets: ['package/PKGBUILD'],
         message: 'chore(release): ${nextRelease.version} [skip ci]'
       }
     ],
