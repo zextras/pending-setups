@@ -59,5 +59,12 @@ pipeline {
                 )
             }
         }
+        stage('Bump version and tag') {
+            steps {
+                script {
+                    dt2_semanticRelease()
+                }
+            }
+        }
     }
 }
