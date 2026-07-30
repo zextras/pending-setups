@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 library(
-    identifier: 'jenkins-lib-common@1.7.5',
+    identifier: 'jenkins-lib-common@v4.1.4',
     retriever: modernSCM([
         $class: 'GitSCMSource',
         credentialsId: 'jenkins-integration-with-github-account',
@@ -53,7 +53,6 @@ pipeline {
             }
             steps {
                 uploadStage(
-                    packages: yapHelper.getPackageNames(),
                     ubuntuSinglePkg: true,
                     rockySinglePkg: true
                 )
