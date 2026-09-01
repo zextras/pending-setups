@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 library(
-    identifier: 'jenkins-lib-common@v4.1.4',
+    identifier: 'jenkins-lib-common@v4.10.2',
     retriever: modernSCM([
         $class: 'GitSCMSource',
         credentialsId: 'jenkins-integration-with-github-account',
@@ -23,6 +23,7 @@ pipeline {
     options {
         skipDefaultCheckout()
         buildDiscarder(logRotator(numToKeepStr: '25'))
+        disableConcurrentBuilds()
         timeout(time: 2, unit: 'HOURS')
     }
 
@@ -30,9 +31,21 @@ pipeline {
         stage('Setup') {
             steps {
                 checkout scm
+                gitMetadata()
+            }
+        }
+
+        stage('Skip CI') {
+            steps {
                 script {
-                    gitMetadata()
+                    semanticRelease.guard()
                 }
+            }
+        }
+
+        stage('Security Scan') {
+            steps {
+                gitleaksStage()
             }
         }
 
@@ -61,7 +74,7 @@ pipeline {
         stage('Bump version and tag') {
             steps {
                 script {
-                    dt2_semanticRelease()
+                    semanticRelease()
                 }
             }
         }
