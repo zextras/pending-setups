@@ -42,6 +42,15 @@ check_folder() {
   fi
 }
 
+# Sidecars skip start while their service-discover token is missing
+# (ConditionPathExists) and are not retried; the setup has just written the token,
+# so start the target again: it starts only inactive sidecars, on this node.
+start_sidecars() {
+  if [[ -d /run/systemd/system ]] && systemctl cat service-discover.target >/dev/null 2>&1; then
+    systemctl start --no-block service-discover.target || true
+  fi
+}
+
 execute_script() {
   SCRIPT="${1}"
   repeated_char 80 "-"
@@ -58,6 +67,7 @@ execute_script() {
     script_basename=$(basename "${SCRIPT}")
     echo "Setup successful, moving $script_basename to ${PERFORMED_SETUPS_DIR}"
     mv "${SCRIPT}" "${PERFORMED_SETUPS_DIR}"
+    start_sidecars
     repeated_char 80 "-"
   else
     echo "Setup script failed, keeping it"
