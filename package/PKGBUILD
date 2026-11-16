@@ -4,7 +4,7 @@
 
 pkgname="pending-setups"
 pkgver="1.0.10"
-pkgrel="2"
+pkgrel="1"
 pkgdesc="Keep track of needed setups for Zextras products"
 maintainer="Zextras <packages@zextras.com>"
 arch=('any')
