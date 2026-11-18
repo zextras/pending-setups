@@ -43,8 +43,11 @@ check_folder() {
 }
 
 # Sidecars skip start while their service-discover token is missing
-# (ConditionPathExists) and are not retried; the setup has just written the token,
-# so start the target again: it starts only inactive sidecars, on this node.
+# (ConditionPathExists) and are not retried. Start the target again once the
+# selected setups have run: it starts only inactive sidecars, on this node.
+# Never between two setups: it would start sidecars whose setup has not
+# registered them yet and exhaust their start limit before their own setup
+# restarts them (CO-4798).
 start_sidecars() {
   if [[ -d /run/systemd/system ]] && systemctl cat service-discover.target >/dev/null 2>&1; then
     systemctl start --no-block service-discover.target || true
@@ -67,7 +70,6 @@ execute_script() {
     script_basename=$(basename "${SCRIPT}")
     echo "Setup successful, moving $script_basename to ${PERFORMED_SETUPS_DIR}"
     mv "${SCRIPT}" "${PERFORMED_SETUPS_DIR}"
-    start_sidecars
     repeated_char 80 "-"
   else
     echo "Setup script failed, keeping it"
@@ -128,6 +130,7 @@ interactive_menu() {
         execute_script "${SETUPS[${i}]}"
         echo
       done
+      start_sidecars
       ;;
     "q")
       exit 0
@@ -136,6 +139,7 @@ interactive_menu() {
       if [[ ${input} -lt ${LEN} ]]; then
         echo
         execute_script "${SETUPS[${input}]}"
+        start_sidecars
         echo
         break
       else
@@ -193,3 +197,5 @@ process_args() {
 }
 
 (check_and_rotate && process_args "$@") 2>&1 | tee -a "${LOG_PATH}/${CURRENT_LOG_DATE}.log"
+# Exit with the setups' status, not tee's: a failed setup must fail the caller.
+exit "${PIPESTATUS[0]}"
