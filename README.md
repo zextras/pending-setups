@@ -121,6 +121,14 @@ The utility can work with Consul token authentication for Zextras products:
 - Set the `SETUP_CONSUL_TOKEN` environment variable before running
 - Or let the utility prompt for credentials and retrieve the token automatically
 
+The token is requested when the first script that needs it runs.
+
+On the nodes that joined the cluster through SPIRE, which have no bootstrap token, `service-discover service pending-setup`
+is asked first about every script. When service-discover manages the mesh part of the script (the ACL policy, the
+service protocol, the intentions and the token of the service) it does it and the script is not run, so no token is
+needed. Otherwise (exit status `10`), or with a version of service-discover without that command, the script runs as
+usual.
+
 ### Logging
 
 All executions are logged to `/var/log/pending-setups/` with ISO 8601 timestamps. The utility automatically maintains the 100 most recent log files, deleting older ones.
