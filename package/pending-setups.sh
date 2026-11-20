@@ -57,6 +57,10 @@ start_sidecars() {
 # Exit status of "service-discover service pending-setup" asking to run the script itself.
 RUN_SCRIPT_STATUS=10
 
+# Exit status of "service-discover service pending-setup" when the servers of the cluster have not registered the
+# service yet (they did not get the service-discover-specs package yet): not a failure, the script stays pending.
+WAIT_SERVERS_STATUS=75
+
 # On the nodes using SPIRE (joined without the cluster credentials) service-discover registers the services in the
 # mesh and issues their tokens by itself, so it can do the mesh part of a script without the bootstrap token. This
 # returns 0 when the script has been handled, ${RUN_SCRIPT_STATUS} when the script has to run, any other status when
@@ -94,6 +98,12 @@ execute_script() {
   if [[ "${EXIT_CODE}" == "${RUN_SCRIPT_STATUS}" ]]; then
     run_script "${SCRIPT}"
     EXIT_CODE="$?"
+  fi
+
+  if [[ "${EXIT_CODE}" == "${WAIT_SERVERS_STATUS}" ]]; then
+    echo "The servers have not registered the service yet, keeping $(basename "${SCRIPT}") pending: run pending-setups again later"
+    repeated_char 80 "-"
+    return 0
   fi
 
   if [[ "${EXIT_CODE}" == "0" ]]; then
