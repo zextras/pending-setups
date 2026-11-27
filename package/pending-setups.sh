@@ -54,16 +54,47 @@ start_sidecars() {
   fi
 }
 
+# Exit status of "service-discover service pending-setup" asking to run the script itself.
+RUN_SCRIPT_STATUS=10
+
+# On the nodes using SPIRE (joined without the cluster credentials) service-discover registers the services in the
+# mesh and issues their tokens by itself, so it can do the mesh part of a script without the bootstrap token. This
+# returns 0 when the script has been handled, ${RUN_SCRIPT_STATUS} when the script has to run, any other status when
+# the handling failed. Versions of service-discover without the command, and nodes not using SPIRE, run the script.
+run_spire_setup() {
+  local script_basename
+  script_basename=$(basename "${1}")
+
+  if ! service-discover service pending-setup --help > /dev/null 2>&1; then
+    return "${RUN_SCRIPT_STATUS}"
+  fi
+
+  service-discover service pending-setup "${script_basename}"
+}
+
+run_script() {
+  check_token
+  # limit visibility of secret token as much as possible
+  export SETUP_CONSUL_TOKEN
+  bash "${1}"
+  local exit_code="$?"
+  export -n SETUP_CONSUL_TOKEN
+
+  return "${exit_code}"
+}
+
 execute_script() {
   SCRIPT="${1}"
   repeated_char 80 "-"
   echo
   echo "Executing ${SCRIPT}"
-  # limit visibility of secret token as much as possible
-  export SETUP_CONSUL_TOKEN
-  bash "${SCRIPT}"
+
+  run_spire_setup "${SCRIPT}"
   EXIT_CODE="$?"
-  export -n SETUP_CONSUL_TOKEN
+  if [[ "${EXIT_CODE}" == "${RUN_SCRIPT_STATUS}" ]]; then
+    run_script "${SCRIPT}"
+    EXIT_CODE="$?"
+  fi
 
   if [[ "${EXIT_CODE}" == "0" ]]; then
     local script_basename
@@ -82,7 +113,6 @@ interactive_menu() {
   local invalid_selection
   invalid_selection=false
   check_root
-  check_token
   check_folder
 
   local input
